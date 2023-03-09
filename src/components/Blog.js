@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import blogService from '../services/blogs';
-const Blog = ({
-  setErrorMessage,
-  setErrorState,
-  blog,
-  user,
-  blogs,
-  setBlogs,
-  updateLikes,
-}) => {
+import { useDispatch } from 'react-redux';
+import { sendNotification } from '../reducers/notificationReducer';
+import { blogChange } from '../reducers/blogReducer';
+
+//TODO Update notifications
+const Blog = ({ blog, user, blogs, updateLikes }) => {
   const [visible, setVisible] = useState(false);
+
+  const dispatch = useDispatch();
 
   const toggleVisibility = () => {
     setVisible(!visible);
@@ -27,15 +26,16 @@ const Blog = ({
   const deleteBlog = async () => {
     if (window.confirm(`Remove blog: ${blog.title} by ${blog.author}`)) {
       const response = await blogService.deleteBlog(blog.id);
-      setErrorMessage(
-        `The blog ${response.title} by ${response.author} has been deleted!`
-      );
-      setErrorState(true);
+      const notificationMessage = {
+        notificationMessage: `The blog ${response.title} by ${response.author} has been deleted!`,
+        errorState: true,
+      };
+      dispatch(sendNotification(notificationMessage));
+
       setTimeout(() => {
-        setErrorMessage(null);
-        setErrorState(null);
+        dispatch(sendNotification({ errorState: null }));
       }, 5000);
-      setBlogs(blogs.filter((blog) => blog.id !== response.id));
+      dispatch(blogChange(blogs.filter((blog) => blog.id !== response.id)));
     }
   };
 

@@ -1,23 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Blog from './components/Blog';
+import BlogForm from './components/BlogForm';
 import LoginForm from './components/LoginForm';
 import Notification from './components/Notification';
-import blogService from './services/blogs';
 import Togglable from './components/Togglable';
-import BlogForm from './components/BlogForm';
+import blogService from './services/blogs';
+import { useDispatch, useSelector } from 'react-redux';
+import { sendNotification } from './reducers/notificationReducer';
+import { blogChange } from './reducers/blogReducer';
+import { removeUser, userChange } from './reducers/userReducer';
 
 const App = () => {
-  const [blogs, setBlogs] = useState([]);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [errorState, setErrorState] = useState(null);
+  const user = useSelector((state) => state.user);
 
-  const [user, setUser] = useState(null);
+  const blogs = useSelector((state) => state.blogs);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser');
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON);
-      setUser(user);
+      dispatch(userChange(user));
       blogService.setToken(user.token);
     }
   }, []);
@@ -27,9 +30,9 @@ const App = () => {
       (async () => {
         try {
           const blogs = await blogService.getAll();
-          setBlogs(blogs.sort((a, b) => b.likes - a.likes));
+          dispatch(blogChange(blogs.sort((a, b) => b.likes - a.likes)));
         } catch (e) {
-          setUser(null);
+          dispatch(removeUser());
         }
       })();
     }
@@ -37,21 +40,27 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser');
-    setUser(null);
+    dispatch(removeUser());
   };
 
   const addBlog = async (blogObject) => {
     blogFormRef.current.toggleVisibility();
 
     const returnedBlog = await blogService.create(blogObject);
-    setBlogs(blogs.concat(returnedBlog));
-    setErrorMessage(
-      `A New Blog: ${returnedBlog.title} by ${returnedBlog.author} has been added!`
-    );
-    setErrorState(false);
+    // Really bad but it is the only way I can get delete button on blogs
+    const blogs = await blogService.getAll();
+    dispatch(blogChange(blogs));
+    const notificationMessage = {
+      notificationMessage: `A New Blog: ${returnedBlog.title} by ${returnedBlog.author} has been added!`,
+      errorState: false,
+    };
+    dispatch(sendNotification(notificationMessage));
     setTimeout(() => {
-      setErrorMessage(null);
-      setErrorState(null);
+      dispatch(
+        sendNotification({
+          errorState: null,
+        })
+      );
     }, 5000);
   };
 
@@ -59,7 +68,7 @@ const App = () => {
 
   const blogForm = () => (
     <Togglable buttonLabel='Create New Blog' ref={blogFormRef}>
-      <BlogForm createBlog={addBlog} />
+      <BlogForm createBlog={addBlog} user={user} />
     </Togglable>
   );
 
@@ -67,23 +76,16 @@ const App = () => {
     const blog = blogs.find((b) => b.id === id);
     const changedBlog = { ...blog, likes: blog.likes + 1 };
     await blogService.update(blog.id, changedBlog);
-    await setBlogs(blogs.map((blog) => (blog.id === id ? changedBlog : blog)));
+
     const updatedBlogs = await blogService.getAll();
     const newBlogs = [...updatedBlogs].sort((a, b) => b.likes - a.likes);
-    await setBlogs(newBlogs);
+    dispatch(blogChange(newBlogs));
   };
 
   return (
     <div>
       {user === null ? (
-        <LoginForm
-          errorMessage={errorMessage}
-          errorState={errorState}
-          setErrorMessage={setErrorMessage}
-          setErrorState={setErrorState}
-          setUser={setUser}
-          setBlogs={setBlogs}
-        />
+        <LoginForm />
       ) : (
         <div>
           <h2>blogs</h2>
@@ -93,20 +95,15 @@ const App = () => {
               Logout
             </button>
           </p>
-          <Notification message={errorMessage} error={errorState} />
+          <Notification />
           {blogForm()}
           <div>
             {blogs.map((blog) => (
               <Blog
-                errorMessage={errorMessage}
-                errorState={errorState}
-                setErrorMessage={setErrorMessage}
-                setErrorState={setErrorState}
                 key={blog.id}
                 blog={blog}
                 user={user}
                 blogs={blogs}
-                setBlogs={setBlogs}
                 updateLikes={() => updateLikesOf(blog.id)}
               />
             ))}

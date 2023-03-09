@@ -1,6 +1,7 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 
-const Notification = (props) => {
+const Notification = () => {
   const acceptedStyle = {
     color: 'green',
     background: 'lightgrey',
@@ -20,20 +21,22 @@ const Notification = (props) => {
     marginBottom: 10,
   };
 
-  if (props.error === null) {
+  const message = useSelector((state) => state.notifications);
+
+  if (message.errorState === false && message.message === '') {
     return null;
   }
-  if (props.error === true) {
+  if (message.errorState === true) {
     return (
       <div style={errorStyle} className='error'>
-        {props.message}
+        {message.message}
       </div>
     );
   }
 
   return (
     <div style={acceptedStyle} className='error'>
-      {props.message}
+      {message.message}
     </div>
   );
 };

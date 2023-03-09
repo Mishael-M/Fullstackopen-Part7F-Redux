@@ -2,18 +2,16 @@ import React, { useState } from 'react';
 import loginService from '../services/login';
 import blogService from '../services/blogs';
 import Notification from './Notification';
-import PropTypes from 'prop-types';
+import { useDispatch } from 'react-redux';
+import { sendNotification } from '../reducers/notificationReducer';
+import { blogChange } from '../reducers/blogReducer';
+import { userChange } from '../reducers/userReducer';
 
-const LoginForm = ({
-  setUser,
-  errorMessage,
-  setErrorMessage,
-  errorState,
-  setErrorState,
-  setBlogs,
-}) => {
+const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
+  const dispatch = useDispatch();
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -25,19 +23,25 @@ const LoginForm = ({
       });
       window.localStorage.setItem('loggedNoteappUser', JSON.stringify(user));
       blogService.setToken(user.token);
-      setUser(user);
+      dispatch(userChange(user));
       setUsername('');
       setPassword('');
-      setErrorMessage('');
-      setErrorState(null);
       const response = await blogService.getAll();
-      setBlogs(response.sort((a, b) => b.likes - a.likes));
+      dispatch(blogChange(response.sort((a, b) => b.likes - a.likes)));
     } catch (exception) {
-      setErrorMessage('Wrong Username or Password');
-      setErrorState(true);
+      dispatch(
+        sendNotification({
+          notificationMessage: 'Wrong Username or Password',
+          errorState: true,
+        })
+      );
+      // Removes notification
       setTimeout(() => {
-        setErrorMessage(null);
-        setErrorState(null);
+        dispatch(
+          sendNotification({
+            errorState: null,
+          })
+        );
       }, 5000);
     }
   };
@@ -45,7 +49,7 @@ const LoginForm = ({
   return (
     <div>
       <h2>Log in to Application</h2>
-      <Notification message={errorMessage} error={errorState} />
+      <Notification />
       <form onSubmit={handleLogin}>
         <div>
           Username:
@@ -73,13 +77,6 @@ const LoginForm = ({
       </form>
     </div>
   );
-};
-
-LoginForm.propTypes = {
-  setUser: PropTypes.func.isRequired,
-  setErrorMessage: PropTypes.func.isRequired,
-  setErrorState: PropTypes.func.isRequired,
-  setBlogs: PropTypes.func.isRequired,
 };
 
 export default LoginForm;
