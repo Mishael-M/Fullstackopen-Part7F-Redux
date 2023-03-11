@@ -21,11 +21,16 @@ const LoginForm = () => {
         username,
         password,
       });
-      window.localStorage.setItem('loggedNoteappUser', JSON.stringify(user));
+      window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user));
       blogService.setToken(user.token);
       dispatch(userChange(user));
       setUsername('');
       setPassword('');
+      dispatch(
+        sendNotification({
+          errorState: null,
+        })
+      );
       const response = await blogService.getAll();
       dispatch(blogChange(response.sort((a, b) => b.likes - a.likes)));
     } catch (exception) {
