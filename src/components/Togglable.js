@@ -1,6 +1,18 @@
-import React, { useImperativeHandle, useState } from 'react';
 import PropTypes from 'prop-types';
+import React, { useImperativeHandle, useState } from 'react';
+import styled from 'styled-components';
 
+const Button = styled.button`
+  background: #e4717a;
+  font-size: 1em;
+  margin: 0.25em;
+  padding: 0.25em 1em;
+  border: 2px solid #c41e3a;
+  border-radius: 3px;
+  &:hover {
+    background: rgba(200, 0, 0, 0.5);
+  }
+`;
 const Togglable = React.forwardRef((props, ref) => {
   const [visible, setVisible] = useState(false);
 
@@ -20,11 +32,11 @@ const Togglable = React.forwardRef((props, ref) => {
   return (
     <div>
       <div style={hideWhenVisible}>
-        <button onClick={toggleVisibility}>{props.buttonLabel}</button>
+        <Button onClick={toggleVisibility}>{props.buttonLabel}</Button>
       </div>
       <div style={showWhenVisible}>
         {props.children}
-        <button onClick={toggleVisibility}>Cancel</button>
+        <Button onClick={toggleVisibility}>Cancel</Button>
       </div>
     </div>
   );

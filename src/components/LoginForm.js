@@ -1,11 +1,28 @@
 import React, { useState } from 'react';
-import loginService from '../services/login';
-import blogService from '../services/blogs';
-import Notification from './Notification';
 import { useDispatch } from 'react-redux';
-import { sendNotification } from '../reducers/notificationReducer';
+import styled from 'styled-components';
 import { blogChange } from '../reducers/blogReducer';
+import { sendNotification } from '../reducers/notificationReducer';
 import { userChange } from '../reducers/userReducer';
+import blogService from '../services/blogs';
+import loginService from '../services/login';
+import Notification from './Notification';
+
+const Button = styled.button`
+  background: #e4717a;
+  font-size: 1em;
+  margin: 0.25em;
+  padding: 0.25em 1em;
+  border: 2px solid #c41e3a;
+  border-radius: 3px;
+  &:hover {
+    background: rgba(200, 0, 0, 0.5);
+  }
+`;
+
+const Input = styled.input`
+  margin: 0.25em;
+`;
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
@@ -32,7 +49,9 @@ const LoginForm = () => {
         })
       );
       const response = await blogService.getAll();
-      dispatch(blogChange(response.sort((a, b) => b.likes - a.likes)));
+      const newBlogs = [...response].sort((a, b) => b.likes - a.likes);
+
+      dispatch(blogChange(newBlogs));
     } catch (exception) {
       dispatch(
         sendNotification({
@@ -58,7 +77,7 @@ const LoginForm = () => {
       <form onSubmit={handleLogin}>
         <div>
           Username:
-          <input
+          <Input
             id='username'
             type='text'
             value={username}
@@ -68,7 +87,7 @@ const LoginForm = () => {
         </div>
         <div>
           Password:
-          <input
+          <Input
             id='password'
             type='password'
             value={password}
@@ -76,9 +95,9 @@ const LoginForm = () => {
             onChange={({ target }) => setPassword(target.value)}
           />
         </div>
-        <button type='submit' id='login-button'>
+        <Button type='submit' id='login-button'>
           Login
-        </button>
+        </Button>
       </form>
     </div>
   );

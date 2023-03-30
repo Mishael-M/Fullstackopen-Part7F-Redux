@@ -1,5 +1,22 @@
-import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import React, { useState } from 'react';
+import styled from 'styled-components';
+
+const Button = styled.button`
+  background: #e4717a;
+  font-size: 1em;
+  margin: 1em;
+  padding: 0.25em 1em;
+  border: 2px solid #c41e3a;
+  border-radius: 3px;
+  &:hover {
+    background: rgba(200, 0, 0, 0.5);
+  }
+`;
+
+const Input = styled.input`
+  margin: 0.25em;
+`;
 
 const BlogForm = ({ createBlog }) => {
   const [blogTitle, setBlogTitle] = useState('');
@@ -37,7 +54,7 @@ const BlogForm = ({ createBlog }) => {
       <form onSubmit={addBlog}>
         <div>
           Title:
-          <input
+          <Input
             type='text'
             value={blogTitle}
             name='Title'
@@ -47,7 +64,7 @@ const BlogForm = ({ createBlog }) => {
         </div>
         <div>
           Author:
-          <input
+          <Input
             type='text'
             value={blogAuthor}
             name='Author'
@@ -57,7 +74,7 @@ const BlogForm = ({ createBlog }) => {
         </div>
         <div>
           Url:
-          <input
+          <Input
             type='text'
             value={blogUrl}
             name='Url'
@@ -65,9 +82,9 @@ const BlogForm = ({ createBlog }) => {
             id='url-input'
           />
         </div>
-        <button type='submit' id='createblog-button'>
+        <Button type='submit' id='createblog-button'>
           Create
-        </button>
+        </Button>
       </form>
     </div>
   );

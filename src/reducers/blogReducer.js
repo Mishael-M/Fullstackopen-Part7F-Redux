@@ -1,7 +1,7 @@
 export const blogChange = (blog) => {
   return {
     type: 'UPDATE_BLOGS',
-    payload: blog,
+    payload: [...blog],
   };
 };
 
